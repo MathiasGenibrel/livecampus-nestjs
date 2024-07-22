@@ -7,4 +7,4 @@ RUN npm install
 
 COPY ./dist ./dist
 
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/main.js"]
