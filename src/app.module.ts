@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { StockageModule } from './app/stockage/stockage.module';
+import { ConfigModule } from '@nestjs/config';
+import { ConfigModuleRootOption } from './app/globals/config-module-root-option';
 
 @Module({
-  imports: [],
+  imports: [StockageModule, ConfigModule.forRoot(ConfigModuleRootOption)],
   controllers: [AppController],
   providers: [AppService],
 })
