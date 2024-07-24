@@ -72,4 +72,4 @@ jobs:
           script: |
             cd /home/ec2-user/project
             docker-compose pull
-            docker-compose up --force-recreate -d
+            docker-compose up --force-recreate -d --env-file ".env.production"
