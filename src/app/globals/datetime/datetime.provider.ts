@@ -1,9 +1,11 @@
 import { Provider } from '@nestjs/common';
-import { DatetimeProviderSymbol, DatetimeService } from './datetime';
+import { DatetimeService } from './datetime';
 import { ConfigService } from '@nestjs/config';
 import { DATETIME_STRATEGY } from '../config-module-root-option';
 import { DatetimeReal } from './datetime.real';
 import { DatetimeStub } from './datetime.stub';
+
+export const DatetimeProviderSymbol = Symbol('datetimeProvider');
 
 export const DatetimeProvider: Provider = {
   provide: DatetimeProviderSymbol,

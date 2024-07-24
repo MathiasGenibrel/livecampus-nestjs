@@ -4,6 +4,7 @@ import {
   Get,
   HttpStatus,
   Inject,
+  Ip,
   Param,
   Post,
   Res,
@@ -17,6 +18,8 @@ import { UploadProviderSymbol } from './usecases/providers/upload-file.provider'
 import { DownloadProviderSymbol } from './usecases/providers/download-file.provider';
 import { Response } from 'express';
 import { FileNotFoundError } from './errors/file-not-found.error';
+import { ActionLog, LogsService } from '../logger/logs.service';
+import { LogsServiceSymbol } from '../logger/providers/logs.provider';
 
 @Controller({ path: 'file' })
 export class StockageController {
@@ -25,6 +28,8 @@ export class StockageController {
     private readonly uploadFileService: UploadFileService,
     @Inject(DownloadProviderSymbol)
     private readonly downloadFileService: DownloadFileService,
+    @Inject(LogsServiceSymbol)
+    private readonly logsService: LogsService,
   ) {}
 
   @Post('upload')
@@ -41,10 +46,12 @@ export class StockageController {
   @Get('download/:filename')
   async downloadFile(
     @Param('filename') filename: string,
+    @Ip() ipAddress: string,
     @Res() res: Response,
   ) {
     try {
       const file = await this.downloadFileService.download(filename);
+      this.logsService.save(ActionLog.DOWNLOAD, ipAddress, filename);
 
       if ('buffer' in file) {
         res.setHeader('Content-Type', file.mimetype);

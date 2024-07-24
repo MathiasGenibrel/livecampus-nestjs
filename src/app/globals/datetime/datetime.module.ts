@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { DatetimeProvider } from './datetime.provider';
 
 @Module({
-  imports: [ConfigModule],
+  imports: [],
   providers: [DatetimeProvider],
   exports: [DatetimeProvider],
 })

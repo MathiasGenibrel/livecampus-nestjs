@@ -1,10 +1,8 @@
 import { Provider } from '@nestjs/common';
 import { LogsService } from '../logs.service';
-import { LogsStorageInMemory } from '../repository/logs-storage-in.memory';
-import {
-  DatetimeProviderSymbol,
-  DatetimeService,
-} from '../../globals/datetime/datetime';
+import { LogsStorageInMemory } from '../repository/logs-storage.in-memory';
+import { DatetimeService } from '../../globals/datetime/datetime';
+import { DatetimeProviderSymbol } from '../../globals/datetime/datetime.provider';
 
 export const LogsServiceSymbol = Symbol('LogsService');
 

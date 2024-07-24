@@ -8,9 +8,9 @@ import { DatetimeModule } from './app/globals/datetime/datetime.module';
 
 @Module({
   imports: [
-    StockageModule,
     ConfigModule.forRoot(ConfigModuleRootOption),
     DatetimeModule,
+    StockageModule,
   ],
   controllers: [AppController],
   providers: [AppService],

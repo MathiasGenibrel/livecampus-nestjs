@@ -1,9 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  DatetimeProviderSymbol,
-  DatetimeService,
-} from '../globals/datetime/datetime';
+import { DatetimeService } from '../globals/datetime/datetime';
 import { LogsStorageService } from './repository/logs-storage';
+import { DatetimeProviderSymbol } from '../globals/datetime/datetime.provider';
 
 export enum ActionLog {
   DOWNLOAD = 'Download',
@@ -20,9 +18,14 @@ export class LogsService {
 
   public save(action: ActionLog, ipAddress: string, filename: string) {
     this.logsStorageService.setItem(action, {
+      id: this.randomId(),
       ip: ipAddress,
       filename,
       createdAt: this.datetimeService.now(),
     });
+  }
+
+  private randomId(): number {
+    return Math.floor(Math.random() * Date.now());
   }
 }
