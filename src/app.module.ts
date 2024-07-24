@@ -4,9 +4,14 @@ import { AppService } from './app.service';
 import { StockageModule } from './app/stockage/stockage.module';
 import { ConfigModule } from '@nestjs/config';
 import { ConfigModuleRootOption } from './app/globals/config-module-root-option';
+import { DatetimeModule } from './app/globals/datetime/datetime.module';
 
 @Module({
-  imports: [StockageModule, ConfigModule.forRoot(ConfigModuleRootOption)],
+  imports: [
+    StockageModule,
+    ConfigModule.forRoot(ConfigModuleRootOption),
+    DatetimeModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

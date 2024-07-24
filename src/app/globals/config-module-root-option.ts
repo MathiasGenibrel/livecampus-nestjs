@@ -12,6 +12,11 @@ export enum APP_SAVING_STATE {
   CLOUD = 'cloud',
 }
 
+export enum DATETIME_STRATEGY {
+  REALTIME = 'realtime',
+  FIXED = 'fixed',
+}
+
 const validationSchema = z.object({
   NODE_ENV: z.nativeEnum(NODE_ENV).default(NODE_ENV.DEVELOPMENT),
   APP_SAVING_STATE: z
@@ -21,6 +26,11 @@ const validationSchema = z.object({
   AWS_PASSWORD: z.string(),
   AWS_ACCESS_KEY_ID: z.string(),
   S3_BUCKET: z.string(),
+
+  DATETIME_STRATEGY: z
+    .nativeEnum(DATETIME_STRATEGY)
+    .default(DATETIME_STRATEGY.REALTIME),
+  DATETIME_ACTUAL: z.string().datetime().default('2024-07-20T10:00:00Z'),
 });
 
 export type SchemaEnvironment = z.infer<typeof validationSchema>;

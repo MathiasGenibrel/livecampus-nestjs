@@ -1,9 +1,9 @@
 import {
-  PutObjectCommand,
   GetObjectCommand,
+  PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
-import { FileStorageService, File } from './file-storage';
+import { File, FileStorageService } from './file-storage';
 import { ConfigService } from '@nestjs/config';
 import { Readable } from 'node:stream';
 import { FileNotFoundError } from '../errors/file-not-found.error';
