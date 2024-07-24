@@ -1,26 +1,71 @@
 import {
   Bind,
   Controller,
+  Get,
+  HttpStatus,
+  Inject,
+  Param,
   Post,
+  Res,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadFileService } from './usecases/upload-file/upload-file.service';
+import { DownloadFileService } from './usecases/download-file/download-file.service';
+import { UploadProviderSymbol } from './usecases/providers/upload-file.provider';
+import { DownloadProviderSymbol } from './usecases/providers/download-file.provider';
+import { Response } from 'express';
+import { FileNotFoundError } from './errors/file-not-found.error';
+import { Readable } from 'node:stream';
 
 @Controller({ path: 'file' })
 export class StockageController {
-  constructor(private readonly uploadFileService: UploadFileService) {}
+  constructor(
+    @Inject(UploadProviderSymbol)
+    private readonly uploadFileService: UploadFileService,
+    @Inject(DownloadProviderSymbol)
+    private readonly downloadFileService: DownloadFileService,
+  ) {}
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
   @Bind(UploadedFile())
   async uploadFile(file: Express.Multer.File) {
-    console.log(file);
     try {
       await this.uploadFileService.upload(file);
     } catch (e) {
       console.error(e);
+    }
+  }
+
+  @Get('download/:filename')
+  async downloadFile(
+    @Param('filename') filename: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const file = await this.downloadFileService.download(filename);
+
+      if ('buffer' in file) {
+        res.setHeader('Content-Type', file.mimetype);
+        res.send(file.buffer);
+      } else if ('stream' in file) {
+        res.setHeader('Content-Type', file.mimetype);
+        file.stream.pipe(res);
+      } else {
+        res.status(HttpStatus.NOT_FOUND).send('File not found');
+      }
+    } catch (e) {
+      console.error(e);
+      if (e instanceof FileNotFoundError) {
+        res.status(HttpStatus.NOT_FOUND).send('File not found');
+        return;
+      }
+
+      res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .send('Failed to download file from storage');
     }
   }
 }

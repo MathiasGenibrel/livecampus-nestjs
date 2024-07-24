@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
-import { UploadFileService } from './usecases/upload-file/upload-file.service';
 import { StockageController } from './stockage.controller';
+import { DownloadFileProvider } from './usecases/providers/download-file.provider';
+import { UploadFileProvider } from './usecases/providers/upload-file.provider';
 
 @Module({
   imports: [],
   controllers: [StockageController],
-  providers: [UploadFileService],
+  providers: [UploadFileProvider, DownloadFileProvider],
 })
 export class StockageModule {}

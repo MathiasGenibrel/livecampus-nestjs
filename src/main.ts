@@ -8,7 +8,7 @@ let ValidationPipeConfig: ValidationPipeOptions = {
   transform: true,
 };
 
-if (process.env.NODE_ENV !== NODE_ENV.DEVELOPMENT) {
+if (process.env.NODE_ENV === NODE_ENV.PRODUCTION) {
   ValidationPipeConfig = {
     ...ValidationPipeConfig,
     dismissDefaultMessages: true,
@@ -21,4 +21,5 @@ async function bootstrap() {
 
   await app.listen(3000);
 }
+
 bootstrap();
