@@ -1,4 +1,4 @@
-import { Log, LogsStorageService } from './logs-storage';
+import { DefaultLog, LogsStorageService } from './logs-storage';
 import { ConfigService } from '@nestjs/config';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { RegionAWS } from '../../globals/aws-region';
@@ -20,7 +20,7 @@ export class LogsStorageCloud implements LogsStorageService {
     this.docClient = DynamoDBDocumentClient.from(this.client);
   }
 
-  public async setItem(key: string, value: Log): Promise<void> {
+  public async setItem(key: string, value: DefaultLog): Promise<void> {
     await this.docClient.send(
       new PutCommand({
         TableName: key,

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DatetimeService } from '../globals/datetime/datetime';
-import { Log, LogsStorageService } from './repository/logs-storage';
+import { DefaultLog, LogsStorageService } from './repository/logs-storage';
 import { DatetimeProviderSymbol } from '../globals/datetime/datetime.provider';
 
 /**
@@ -11,6 +11,18 @@ export enum ActionLog {
   UPLOAD = 'FileUpload',
 }
 
+type LogPayload =
+  | {
+      action: ActionLog.UPLOAD;
+      ipAddress: string;
+      file: Express.Multer.File;
+    }
+  | {
+      action: ActionLog.DOWNLOAD;
+      ipAddress: string;
+      filename: string;
+    };
+
 @Injectable()
 export class LogsService {
   constructor(
@@ -19,16 +31,30 @@ export class LogsService {
     private readonly logsStorageService: LogsStorageService,
   ) {}
 
-  public save(action: ActionLog, ipAddress: string, filename: string) {
-    this.logsStorageService.setItem(action, {
-      id: this.randomId(),
-      ip: ipAddress,
-      filename,
-      createdAt: this.datetimeService.now().toISOString(),
-    });
+  public save(payload: LogPayload) {
+    switch (payload.action) {
+      case ActionLog.DOWNLOAD:
+        this.logsStorageService.setItem(payload.action, {
+          id: this.randomId(),
+          ip: payload.ipAddress,
+          filename: payload.filename,
+          createdAt: this.datetimeService.now().toISOString(),
+        });
+        break;
+      case ActionLog.UPLOAD:
+        this.logsStorageService.setItem(payload.action, {
+          id: this.randomId(),
+          ip: payload.ipAddress,
+          filename: payload.file.originalname,
+          size: payload.file.size,
+          createdAt: this.datetimeService.now().toISOString(),
+          deleteAt: null,
+        });
+        break;
+    }
   }
 
-  private randomId(): Log['id'] {
+  private randomId(): DefaultLog['id'] {
     return Math.floor(Math.random() * Date.now()).toString();
   }
 }

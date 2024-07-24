@@ -38,7 +38,7 @@ export class StockageController {
   async uploadFile(file: Express.Multer.File, @Ip() ipAddress: string) {
     try {
       await this.uploadFileService.upload(file);
-      this.logsService.save(ActionLog.UPLOAD, ipAddress, file.originalname);
+      this.logsService.save({ action: ActionLog.UPLOAD, file, ipAddress });
     } catch (e) {
       console.error(e);
     }
@@ -52,23 +52,24 @@ export class StockageController {
   ) {
     try {
       const file = await this.downloadFileService.download(filename);
-      this.logsService.save(ActionLog.DOWNLOAD, ipAddress, filename);
+      this.logsService.save({
+        action: ActionLog.DOWNLOAD,
+        ipAddress,
+        filename,
+      });
 
-      if ('buffer' in file) {
-        res.setHeader('Content-Type', file.mimetype);
-        res.send(file.buffer);
-      } else if ('stream' in file) {
-        res.setHeader('Content-Type', file.mimetype);
-        file.stream.pipe(res);
-      } else {
-        res.status(HttpStatus.NOT_FOUND).send('File not found');
+      if (!file) return res.status(HttpStatus.NOT_FOUND).send('File not found');
+
+      res.setHeader('Content-Type', file.mimetype);
+
+      if ('stream' in file) {
+        return file.stream.pipe(res);
       }
+
+      return res.send(file.buffer);
     } catch (e) {
-      console.error(e);
-      if (e instanceof FileNotFoundError) {
-        res.status(HttpStatus.NOT_FOUND).send('File not found');
-        return;
-      }
+      if (e instanceof FileNotFoundError)
+        return res.status(HttpStatus.NOT_FOUND).send('File not found');
 
       res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
