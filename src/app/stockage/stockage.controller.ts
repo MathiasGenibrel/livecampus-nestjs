@@ -35,9 +35,10 @@ export class StockageController {
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
   @Bind(UploadedFile())
-  async uploadFile(file: Express.Multer.File) {
+  async uploadFile(file: Express.Multer.File, @Ip() ipAddress: string) {
     try {
       await this.uploadFileService.upload(file);
+      this.logsService.save(ActionLog.UPLOAD, ipAddress, file.originalname);
     } catch (e) {
       console.error(e);
     }

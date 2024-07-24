@@ -1,11 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DatetimeService } from '../globals/datetime/datetime';
-import { LogsStorageService } from './repository/logs-storage';
+import { Log, LogsStorageService } from './repository/logs-storage';
 import { DatetimeProviderSymbol } from '../globals/datetime/datetime.provider';
 
+/**
+ * ActionLog enum represents table names in the database.
+ */
 export enum ActionLog {
-  DOWNLOAD = 'Download',
-  UPLOAD = 'Upload',
+  DOWNLOAD = 'FileDownload',
+  UPLOAD = 'FileUpload',
 }
 
 @Injectable()
@@ -21,11 +24,11 @@ export class LogsService {
       id: this.randomId(),
       ip: ipAddress,
       filename,
-      createdAt: this.datetimeService.now(),
+      createdAt: this.datetimeService.now().toISOString(),
     });
   }
 
-  private randomId(): number {
-    return Math.floor(Math.random() * Date.now());
+  private randomId(): Log['id'] {
+    return Math.floor(Math.random() * Date.now()).toString();
   }
 }

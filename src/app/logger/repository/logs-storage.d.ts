@@ -1,6 +1,6 @@
 export interface Log {
-  createdAt: Date;
-  id: number;
+  createdAt: string;
+  id: string;
   ip: string;
   filename: string;
 }

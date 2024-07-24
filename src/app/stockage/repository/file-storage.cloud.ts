@@ -7,10 +7,7 @@ import { File, FileStorageService } from './file-storage';
 import { ConfigService } from '@nestjs/config';
 import { Readable } from 'node:stream';
 import { FileNotFoundError } from '../errors/file-not-found.error';
-
-enum RegionAWS {
-  PARIS = 'eu-west-3',
-}
+import { RegionAWS } from '../../globals/aws-region';
 
 export class FileStorageCloud implements FileStorageService {
   private readonly client: S3Client;
