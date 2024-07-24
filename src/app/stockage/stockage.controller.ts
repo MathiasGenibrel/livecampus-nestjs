@@ -17,7 +17,6 @@ import { UploadProviderSymbol } from './usecases/providers/upload-file.provider'
 import { DownloadProviderSymbol } from './usecases/providers/download-file.provider';
 import { Response } from 'express';
 import { FileNotFoundError } from './errors/file-not-found.error';
-import { Readable } from 'node:stream';
 
 @Controller({ path: 'file' })
 export class StockageController {
