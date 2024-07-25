@@ -1,6 +1,7 @@
 import {
   DeleteObjectCommand,
   GetObjectCommand,
+  ListObjectsCommand,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
@@ -9,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import { Readable } from 'node:stream';
 import { FileNotFoundError } from '../errors/file-not-found.error';
 import { RegionAWS } from '../../globals/aws-region';
+import { z } from 'zod';
 
 export class FileStorageCloud implements FileStorageService {
   private readonly client: S3Client;
@@ -52,6 +54,57 @@ export class FileStorageCloud implements FileStorageService {
         filename: key,
       });
     }
+  }
+
+  async getAll() {
+    const commandOutput = await this.client.send(
+      new ListObjectsCommand({
+        Bucket: process.env.S3_BUCKET,
+      }),
+    );
+
+    const contents = commandOutput.Contents ?? [];
+
+    return contents
+      .map((content): Pick<Express.Multer.File, 'filename' | 'size'> | null => {
+        try {
+          const validatedContent = this.objectPipeValidation(content);
+
+          return {
+            filename: validatedContent.Key,
+            size: validatedContent.Size,
+          };
+        } catch (error) {
+          console.warn('Error while validating content', error);
+          return null;
+        }
+      })
+      .filter((content) => {
+        console.log('FILTER', content);
+        return content !== null;
+      });
+  }
+
+  private objectPipeValidation(content: unknown) {
+    const schema = z
+      .object({
+        Key: z.string(),
+        LastModified: z.string(),
+        ETag: z.string(),
+        Size: z.number(),
+        StorageClass: z.string(),
+        Owner: z.object({
+          ID: z.string(),
+        }),
+      })
+      .omit({
+        ETag: true,
+        StorageClass: true,
+        Owner: true,
+        LastModified: true,
+      });
+
+    return schema.parse(content);
   }
 
   async removeFile(key: string) {

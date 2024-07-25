@@ -70,6 +70,11 @@ export class StockageController {
     }
   }
 
+  @Get()
+  async getFiles() {
+    return await this.downloadFileService.getAll();
+  }
+
   @Get('download/:filename')
   async downloadFile(
     @Param('filename') filename: string,

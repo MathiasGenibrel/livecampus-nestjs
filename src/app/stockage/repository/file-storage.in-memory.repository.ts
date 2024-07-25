@@ -1,11 +1,18 @@
-import { File, FileStorageService } from './file-storage';
+import { File, FileLightInformation, FileStorageService } from './file-storage';
 import { FileNotFoundError } from '../errors/file-not-found.error';
 
-const storage: Map<string, File> = new Map();
+type FileStorage = File & FileLightInformation;
+
+const storage: Map<string, FileStorage> = new Map();
 
 export class FileStorageInMemory implements FileStorageService {
   public async setFile(key: string, file: Express.Multer.File) {
-    storage.set(key, { buffer: file.buffer, mimetype: file.mimetype });
+    storage.set(key, {
+      buffer: file.buffer,
+      mimetype: file.mimetype,
+      size: file.size,
+      filename: file.originalname,
+    });
   }
 
   public async getFile(key: string) {
@@ -22,5 +29,14 @@ export class FileStorageInMemory implements FileStorageService {
 
   public async removeFile(key: string) {
     storage.delete(key);
+  }
+
+  public async getAll(): Promise<FileLightInformation[]> {
+    const files = [...storage.values()];
+
+    return files.map((file) => ({
+      filename: file.filename,
+      size: file.size,
+    }));
   }
 }
