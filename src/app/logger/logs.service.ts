@@ -7,6 +7,12 @@ import { DatetimeProviderSymbol } from '../globals/datetime/datetime.provider';
  * ActionLog enum represents table names in the database.
  */
 export enum ActionLog {
+  DOWNLOAD = 'download',
+  UPLOAD = 'upload',
+  DELETE = 'delete',
+}
+
+export enum LogTableKey {
   DOWNLOAD = 'FileDownload',
   UPLOAD = 'FileUpload',
 }
@@ -14,12 +20,20 @@ export enum ActionLog {
 type LogPayload =
   | {
       action: ActionLog.UPLOAD;
+      key: LogTableKey.UPLOAD;
       ipAddress: string;
-      file: Express.Multer.File;
+      fileSize: number;
+      filename: string;
     }
   | {
       action: ActionLog.DOWNLOAD;
+      key: LogTableKey.DOWNLOAD;
       ipAddress: string;
+      filename: string;
+    }
+  | {
+      action: ActionLog.DELETE;
+      key: LogTableKey.UPLOAD;
       filename: string;
     };
 
@@ -34,21 +48,29 @@ export class LogsService {
   public save(payload: LogPayload) {
     switch (payload.action) {
       case ActionLog.DOWNLOAD:
-        this.logsStorageService.setItem(payload.action, {
-          id: this.randomId(),
+        this.logsStorageService.setItem(payload.key, {
+          id: payload.filename,
           ip: payload.ipAddress,
           filename: payload.filename,
           createdAt: this.datetimeService.now().toISOString(),
         });
         break;
+
+      case ActionLog.DELETE:
+        this.logsStorageService.deleteActionItem(payload.key, {
+          filename: payload.filename,
+          deletedAt: this.datetimeService.now().toISOString(),
+        });
+        break;
+
       case ActionLog.UPLOAD:
-        this.logsStorageService.setItem(payload.action, {
-          id: this.randomId(),
+        this.logsStorageService.setItem(payload.key, {
+          id: payload.filename,
           ip: payload.ipAddress,
-          filename: payload.file.originalname,
-          size: payload.file.size,
+          filename: payload.filename,
+          size: payload.fileSize,
           createdAt: this.datetimeService.now().toISOString(),
-          deleteAt: null,
+          deletedAt: '',
         });
         break;
     }

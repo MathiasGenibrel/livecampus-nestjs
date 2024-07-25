@@ -1,6 +1,7 @@
 import {
   Bind,
   Controller,
+  Delete,
   Get,
   HttpStatus,
   Inject,
@@ -18,8 +19,10 @@ import { UploadProviderSymbol } from './usecases/providers/upload-file.provider'
 import { DownloadProviderSymbol } from './usecases/providers/download-file.provider';
 import { Response } from 'express';
 import { FileNotFoundError } from './errors/file-not-found.error';
-import { ActionLog, LogsService } from '../logger/logs.service';
+import { ActionLog, LogsService, LogTableKey } from '../logger/logs.service';
 import { LogsServiceSymbol } from '../logger/providers/logs.provider';
+import { DeleteFileService } from './usecases/delete-file/delete-file.service';
+import { DeleteProviderSymbol } from './usecases/providers/delete-file.provider';
 
 @Controller({ path: 'file' })
 export class StockageController {
@@ -28,6 +31,8 @@ export class StockageController {
     private readonly uploadFileService: UploadFileService,
     @Inject(DownloadProviderSymbol)
     private readonly downloadFileService: DownloadFileService,
+    @Inject(DeleteProviderSymbol)
+    private readonly deleteFileService: DeleteFileService,
     @Inject(LogsServiceSymbol)
     private readonly logsService: LogsService,
   ) {}
@@ -37,9 +42,30 @@ export class StockageController {
   @Bind(UploadedFile())
   async uploadFile(file: Express.Multer.File, @Ip() ipAddress: string) {
     try {
-      await this.uploadFileService.upload(file);
-      this.logsService.save({ action: ActionLog.UPLOAD, file, ipAddress });
+      const savedFilename = await this.uploadFileService.upload(file);
+      this.logsService.save({
+        action: ActionLog.UPLOAD,
+        key: LogTableKey.UPLOAD,
+        fileSize: file.size,
+        filename: savedFilename,
+        ipAddress,
+      });
     } catch (e) {
+      console.error(e);
+    }
+  }
+
+  @Delete('delete/:filename')
+  async deleteFile(@Param('filename') filename: string) {
+    try {
+      await this.deleteFileService.delete(filename);
+      this.logsService.save({
+        action: ActionLog.DELETE,
+        key: LogTableKey.UPLOAD,
+        filename,
+      });
+    } catch (e) {
+      if (e instanceof FileNotFoundError) return HttpStatus.NOT_FOUND;
       console.error(e);
     }
   }
@@ -54,6 +80,7 @@ export class StockageController {
       const file = await this.downloadFileService.download(filename);
       this.logsService.save({
         action: ActionLog.DOWNLOAD,
+        key: LogTableKey.DOWNLOAD,
         ipAddress,
         filename,
       });

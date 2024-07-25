@@ -1,8 +1,12 @@
-import { DefaultLog, LogsStorageService } from './logs-storage';
+import { DefaultLog, DeleteLog, LogsStorageService } from './logs-storage';
 import { ConfigService } from '@nestjs/config';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { RegionAWS } from '../../globals/aws-region';
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import {
+  DynamoDBDocumentClient,
+  PutCommand,
+  UpdateCommand,
+} from '@aws-sdk/lib-dynamodb';
 
 export class LogsStorageCloud implements LogsStorageService {
   private readonly client: DynamoDBClient;
@@ -25,6 +29,19 @@ export class LogsStorageCloud implements LogsStorageService {
       new PutCommand({
         TableName: key,
         Item: value,
+      }),
+    );
+  }
+
+  public async deleteActionItem(key: string, value: DeleteLog): Promise<void> {
+    await this.docClient.send(
+      new UpdateCommand({
+        TableName: key,
+        Key: { id: value.filename },
+        UpdateExpression: 'SET deletedAt = :deletedAt',
+        ExpressionAttributeValues: {
+          ':deletedAt': value.deletedAt,
+        },
       }),
     );
   }

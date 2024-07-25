@@ -12,9 +12,15 @@ export class FileStorageInMemory implements FileStorageService {
     const file = storage.get(key);
 
     if (!file) {
-      throw new FileNotFoundError('File not found or does not exist');
+      throw new FileNotFoundError('File not found or does not exist', {
+        filename: key,
+      });
     }
 
     return file;
+  }
+
+  public async removeFile(key: string) {
+    storage.delete(key);
   }
 }

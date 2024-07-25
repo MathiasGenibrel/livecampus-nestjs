@@ -1,4 +1,5 @@
 import {
+  DeleteObjectCommand,
   GetObjectCommand,
   PutObjectCommand,
   S3Client,
@@ -34,20 +35,31 @@ export class FileStorageCloud implements FileStorageService {
   }
 
   async getFile(key: string): Promise<File> {
-    const response = await this.client.send(
-      new GetObjectCommand({
+    try {
+      const response = await this.client.send(
+        new GetObjectCommand({
+          Bucket: process.env.S3_BUCKET,
+          Key: key,
+        }),
+      );
+
+      return {
+        stream: Readable.from(response.Body.transformToWebStream()),
+        mimetype: response.ContentType || 'application/octet-stream',
+      };
+    } catch (error) {
+      throw new FileNotFoundError('File not found or does not exist', {
+        filename: key,
+      });
+    }
+  }
+
+  async removeFile(key: string) {
+    await this.client.send(
+      new DeleteObjectCommand({
         Bucket: process.env.S3_BUCKET,
         Key: key,
       }),
     );
-
-    if (!response.Body) {
-      throw new FileNotFoundError('File not found or does not exist');
-    }
-
-    return {
-      stream: Readable.from(response.Body.transformToWebStream()),
-      mimetype: response.ContentType || 'application/octet-stream',
-    };
   }
 }
